@@ -1,8 +1,19 @@
 package com.example.parth.androidsensorapp;
 
 
+import android.Manifest;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.Build;
+import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.support.annotation.RequiresPermission;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.app.Activity;
@@ -16,30 +27,41 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.text.SimpleDateFormat;
+
 public class Sensorinfo extends AppCompatActivity implements SensorEventListener {
     TextView t;
     TextView t1;
-    TextView t2,t3,t4,t5;
+    TextView t2, t3, t4, t5, t6, t7, t8;
     private float deltaX, deltaY, deltaZ;
     private float mLastX, mLastY, mLastZ;
     private boolean mInitialized;
     private SensorManager mSensorManager;
     private Sensor mAccelerometer;
     private Sensor mGyro;
-    private Sensor mMagno,mPressure,mLight,mTemp,mHuimid;
+    private Sensor mMagno, mPressure, mLight, mTemp, mHuimid, mProx;
+
 
     private final float NOISE = (float) 2.0;
+    private float Xaccel,Yaccel,Zaccel,Xgyro,Ygyro,Zgyro,Temp,Pressure
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sensorinfo);
+        t8 = (TextView) findViewById(R.id.textView14);
+        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
         mInitialized = false;
-        t=(TextView)findViewById(R.id.textView2);
-        t1=(TextView)findViewById(R.id.textView3);
-        t2=(TextView)findViewById(R.id.textView4);
-        t3=(TextView)findViewById(R.id.textView5);
-        t4=(TextView)findViewById(R.id.textView6);
+        t=(TextView)findViewById(R.id.textView3);
+        t1=(TextView)findViewById(R.id.textView6);
+        t2=(TextView)findViewById(R.id.textView5);
+        t3=(TextView)findViewById(R.id.textView7);
+        t4=(TextView)findViewById(R.id.textView8);
+        t5=(TextView)findViewById(R.id.textView9);
+        t6=(TextView)findViewById(R.id.textView10);
+
         //t4=(TextView)findViewById(R.id.textV)
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -47,6 +69,38 @@ public class Sensorinfo extends AppCompatActivity implements SensorEventListener
         mHuimid=mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
         mPressure=mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
         mMagno=mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        mLight=mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
+        mProx=mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
+        Thread thread=new Thread(){
+            @Override
+            public void run()
+            {
+                while (!isInterrupted())
+                {
+                    try{
+                        Thread.sleep(1);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+                                long date=System.currentTimeMillis();
+                                String s=sdf.format(date);
+                                t7=(TextView)findViewById(R.id.textView13);
+                                t7.setText("Current date and time: " + s);
+
+                            }
+                        });
+
+
+                    }
+                    catch (InterruptedException e)
+                    {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        };
+        thread.start();
         if(mAccelerometer!=null) {
             mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
         }
@@ -86,8 +140,44 @@ public class Sensorinfo extends AppCompatActivity implements SensorEventListener
         {
             t4.setText("Magnetometer not supported");
         }
+        if(mLight!=null)
+        {
+            mSensorManager.registerListener(this,mLight,SensorManager.SENSOR_DELAY_NORMAL);
+        }
+        else
+        {
+            t5.setText("Light sensor not present");
+        }
+        if (mProx!=null)
+        {
+            mSensorManager.registerListener(this,mProx,SensorManager.SENSOR_DELAY_NORMAL);
+        }
+        else
+        {
+            t6.setText("Proximity sensor not present");
+        }
 
     }
+   /* private void Updatelocation() {
+        locationManager.requestLocationUpdates("gps", 1, 0, locationListener);
+
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+
+        switch (requestCode){
+            case 10:
+                if (grantResults.length>=0&&grantResults[0]==PackageManager.PERMISSION_GRANTED)
+                {
+                    locationManager.requestLocationUpdates("gps", 1, 0, locationListener);
+                }
+        }
+
+
+    }*/
+
 
     protected void onResume() {
         super.onResume();
@@ -149,6 +239,16 @@ public class Sensorinfo extends AppCompatActivity implements SensorEventListener
         {
             t4.setText("Magnetometer values: X:" + event.values[0] + "Y:" + event.values[1] + "Z:" + event.values[2]);
         }
+        else if (sensor.getType()==Sensor.TYPE_LIGHT)
+        {
+            t5.setText("Light sensor values: Illuminance:" + event.values[0]);
+        }
+        else if (sensor.getType()==Sensor.TYPE_PROXIMITY)
+        {
+            t6.setText("Proximity sensor values: Proximity:" + event.values[0]);
+        }
 
     }
+
+
 }
