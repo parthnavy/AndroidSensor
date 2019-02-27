@@ -19,6 +19,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".Sensorinfo"></activity>
+        <activity android:name=".displayrecords"></activity>
     </application>
 
 </manifest>
