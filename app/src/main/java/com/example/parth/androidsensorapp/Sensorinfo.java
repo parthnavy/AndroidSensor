@@ -10,6 +10,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
+import android.os.Handler;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresPermission;
@@ -46,14 +47,15 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 
 public class Sensorinfo extends AppCompatActivity implements SensorEventListener {
-
+    int flag=0;
     TextView t;
     TextView t1;
     TextView t2, t3, t4, t5, t6, t7, t8;
-    private float deltaX, deltaY, deltaZ;
+    private double deltaX, deltaY, deltaZ;
     private float mLastX, mLastY, mLastZ;
     private boolean mInitialized;
     private SensorManager mSensorManager;
@@ -202,6 +204,7 @@ public class Sensorinfo extends AppCompatActivity implements SensorEventListener
             t6.setText("\n Temperature sensor not present");
         }
 
+
     }
 
 
@@ -219,10 +222,18 @@ public class Sensorinfo extends AppCompatActivity implements SensorEventListener
 
     }
 
-    protected void onPause() {
+    /*protected void onPause() {
         super.onPause();
-        mSensorManager.unregisterListener(this);
-    }
+        mSensorManager.registerListener( this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener( this, mtemp, SensorManager.SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener( this, mProx, SensorManager.SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener( this, mMagno, SensorManager.SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener( this, mHuimid, SensorManager.SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener( this, mGyro, SensorManager.SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener( this, mLight, SensorManager.SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener( this, mPressure, SensorManager.SENSOR_DELAY_NORMAL);
+        //mSensorManager.unregisterListener(this);
+    }*/
 
     //@Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
@@ -233,33 +244,20 @@ public class Sensorinfo extends AppCompatActivity implements SensorEventListener
         Sensor sensor=event.sensor;
         if(sensor.getType()==Sensor.TYPE_ACCELEROMETER)
         {
-            float x = event.values[0];
-            float y = event.values[1];
-            float z = event.values[2];
-            if (!mInitialized) {
-                mLastX = x;
-                mLastY = y;
-                mLastZ = z;
+            Xaccel=event.values[0];
+            Yaccel=event.values[1];
+            Zaccel=event.values[2];
+            DecimalFormat numberFormat = new DecimalFormat("#.0000");
+            numberFormat.format(Xaccel);
+            numberFormat.format(Yaccel);
+            numberFormat.format(Zaccel);
 
-                mInitialized = true;
-            } else {
-                deltaX = Math.abs(mLastX - x);
-                deltaY = Math.abs(mLastY - y);
-                deltaZ = Math.abs(mLastZ - z);
-
-                if (deltaX < NOISE) deltaX = (float) 0.0;
-                if (deltaY < NOISE) deltaY = (float) 0.0;
-                if (deltaZ < NOISE) deltaZ = (float) 0.0;
-                mLastX = x;
-                mLastY = y;
-                mLastZ = z;
-                Xaccel=deltaX;
-                Yaccel=deltaY;
-                Zaccel=deltaZ;
-                t.setText(Html.fromHtml(" Accelerometer: <br>  X:" + deltaX + "m/s<sup>2</sup> <br>  Y:" + deltaY + "m/s<sup>2</sup> <br>  Z:" + deltaZ+"m/s<sup>2</sup>"));
-            }
+                t.setText(Html.fromHtml(" Accelerometer: <br>  X:" + Xaccel + "m/s<sup>2</sup> <br>  Y:" + Yaccel + "m/s<sup>2</sup> <br>  Z:" + Zaccel+"m/s<sup>2</sup>"));
 
         }
+
+
+
         else if (sensor.getType()==Sensor.TYPE_GYROSCOPE)
         {
             t1.setText(" Gyroscope \n   X:" + event.values[0] + "rad/s\n    Y:" + event.values[1] +"rad/s\n     Z:" + event.values[2]);
@@ -291,7 +289,8 @@ public class Sensorinfo extends AppCompatActivity implements SensorEventListener
         }
 
     }
-    public void record(View view) throws FileNotFoundException {
+    public void save_data ()
+    {
         jsondata j=new jsondata();
 
         JSONObject j1=j.makeJSONObject(time,Xaccel,Yaccel,Zaccel);
@@ -308,17 +307,54 @@ public class Sensorinfo extends AppCompatActivity implements SensorEventListener
         }catch (Exception e) {
             Toast.makeText(getBaseContext(), e.getMessage(), Toast.LENGTH_LONG).show();
         }
+    }
+   public void record(View view)  {
+
+           final Handler handler = new Handler();
+           final int delay = 1000; //milliseconds
+
+           handler.postDelayed(new Runnable() {
+               public void run() {
+                   save_data();
+                   if (flag==0)
+                   handler.postDelayed(this, delay);
+               }
+           }, delay);
+
+
 
     }
-    /*public void readfile()
-    {
+    /*public void record(View view) {
+         r = new Runnable() {
+            public void run() {
+                handler.postDelayed(this, 1000);
+                save_data();
+            }
+        };
+    }
+   /*public void record(View view)  {
+        r = new Runnable() {
+           public void run() {
+               save_data();
+           }
+       };
+       handler.postDelayed(r,1000);
+   }*/
+    public void stoprecord(View view) {
+        //handler.removeCallbacks(r);
 
-    }*/
+            flag = 1;
+            Toast.makeText(this, "Stopped recording data", Toast.LENGTH_LONG).show();
+
+
+
+    }
     public void showrec(View view)
     {
         Intent intent = new Intent(this, displayrecords.class);
         // intent.putCharSequenceArrayListExtra("strings", sb);
         startActivity(intent);
+
 
 
 
