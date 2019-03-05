@@ -51,6 +51,8 @@ import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 
 public class Sensorinfo extends AppCompatActivity implements SensorEventListener {
+    String p;
+    long date;
     int flag=0;
     TextView t;
     TextView t1;
@@ -63,7 +65,7 @@ public class Sensorinfo extends AppCompatActivity implements SensorEventListener
     private Sensor mGyro;
     private Sensor mMagno, mPressure, mLight, mTemp, mHuimid, mProx,mtemp;
     FileOutputStream fout;
-
+    String s="";
     private final float NOISE = (float) 2.0;
     private float Xaccel,Yaccel,Zaccel,Xgyro,Ygyro,Zgyro,Temp,Pressure,humid,illuminance,proxi;
     private long time;
@@ -116,16 +118,18 @@ public class Sensorinfo extends AppCompatActivity implements SensorEventListener
                 while (!isInterrupted())
                 {
                     try{
-                        Thread.sleep(1);
+                        Thread.sleep(1000);
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
                                 final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                                long date=System.currentTimeMillis();
+                                 date=System.currentTimeMillis();
 
-                                String s=sdf.format(date);
+                                 s=sdf.format(date);
+
                                 //t7=(TextView)findViewById(R.id.textView13);
                                 t7.setText("Current date and time: " + s);
+
 
                             }
                         });
@@ -293,7 +297,7 @@ public class Sensorinfo extends AppCompatActivity implements SensorEventListener
     {
         jsondata j=new jsondata();
 
-        JSONObject j1=j.makeJSONObject(time,Xaccel,Yaccel,Zaccel);
+        JSONObject j1=j.makeJSONObject(s,Xaccel,Yaccel,Zaccel);
         //SharedPreferences sharedPreferences=getSharedPreferences("records",Context.);
 
         try {
