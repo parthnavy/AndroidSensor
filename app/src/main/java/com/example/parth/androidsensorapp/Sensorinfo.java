@@ -9,6 +9,7 @@ import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Handler;
 import android.provider.Settings;
@@ -58,16 +59,19 @@ public class Sensorinfo extends AppCompatActivity implements SensorEventListener
     TextView t1;
     TextView t2, t3, t4, t5, t6, t7, t8;
     private double deltaX, deltaY, deltaZ;
+    float tmp;
     private float mLastX, mLastY, mLastZ;
     private boolean mInitialized;
     private SensorManager mSensorManager;
     private Sensor mAccelerometer;
     private Sensor mGyro;
-    private Sensor mMagno, mPressure, mLight, mTemp, mHuimid, mProx,mtemp;
+    private Sensor mMagno, mPressure, mLight, mTemp, mHuimid, mProx;
     FileOutputStream fout;
     String s="";
-    private final float NOISE = (float) 2.0;
-    private float Xaccel,Yaccel,Zaccel,Xgyro,Ygyro,Zgyro,Temp,Pressure,humid,illuminance,proxi;
+
+
+
+    private double Xaccel,Yaccel,Zaccel,Xgyro,Ygyro,Zgyro,Temp,Pressure,humid,illuminance,proxi;
     private long time;
     private  StringBuilder sb;
     @Override
@@ -111,6 +115,7 @@ public class Sensorinfo extends AppCompatActivity implements SensorEventListener
         mLight=mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
         mProx=mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
         mTemp=mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE);
+
         Thread thread=new Thread(){
             @Override
             public void run()
@@ -144,6 +149,7 @@ public class Sensorinfo extends AppCompatActivity implements SensorEventListener
             }
         };
         thread.start();
+
         if(mAccelerometer!=null) {
             mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
         }
@@ -165,7 +171,7 @@ public class Sensorinfo extends AppCompatActivity implements SensorEventListener
         }
         else
         {
-            t2.setText(" Humidity sensor not present");
+            t3.setText(" Humidity sensor not present");
         }
         if(mPressure!=null)
         {
@@ -173,7 +179,7 @@ public class Sensorinfo extends AppCompatActivity implements SensorEventListener
         }
         else
         {
-            t3.setText(" Pressure sensor not supported");
+            t2.setText(" Pressure sensor not supported");
         }
         if(mMagno!=null)
         {
@@ -199,13 +205,13 @@ public class Sensorinfo extends AppCompatActivity implements SensorEventListener
         {
             t6.setText(" Proximity sensor not present");
         }
-        if(mtemp!=null)
+        if(mTemp!=null)
         {
-            mSensorManager.registerListener(this,mtemp,SensorManager.SENSOR_DELAY_NORMAL);
+            mSensorManager.registerListener(this,mTemp,SensorManager.SENSOR_DELAY_NORMAL);
         }
         else
         {
-            t6.setText("\n Temperature sensor not present");
+            t7.setText("\n Temperature sensor not present");
         }
 
 
@@ -216,7 +222,7 @@ public class Sensorinfo extends AppCompatActivity implements SensorEventListener
     protected void onResume() {
         super.onResume();
         mSensorManager.registerListener( this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
-        mSensorManager.registerListener( this, mtemp, SensorManager.SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener( this, mTemp, SensorManager.SENSOR_DELAY_NORMAL);
         mSensorManager.registerListener( this, mProx, SensorManager.SENSOR_DELAY_NORMAL);
         mSensorManager.registerListener( this, mMagno, SensorManager.SENSOR_DELAY_NORMAL);
         mSensorManager.registerListener( this, mHuimid, SensorManager.SENSOR_DELAY_NORMAL);
@@ -251,7 +257,7 @@ public class Sensorinfo extends AppCompatActivity implements SensorEventListener
             Xaccel=event.values[0];
             Yaccel=event.values[1];
             Zaccel=event.values[2];
-            DecimalFormat numberFormat = new DecimalFormat("#.0000");
+            DecimalFormat numberFormat = new DecimalFormat("#.####");
             numberFormat.format(Xaccel);
             numberFormat.format(Yaccel);
             numberFormat.format(Zaccel);
@@ -289,7 +295,10 @@ public class Sensorinfo extends AppCompatActivity implements SensorEventListener
         }
         else if (sensor.getType()==Sensor.TYPE_AMBIENT_TEMPERATURE)
         {
-            t6.setText(" \nTemperature sensor \n Temperature:" + event.values[0] + "Degree celcius");
+            float tmp=event.values[0];
+
+            t7.setText(" \nTemperature sensor  Temperature:" + tmp + "Degree celcius");
+
         }
 
     }
@@ -297,7 +306,7 @@ public class Sensorinfo extends AppCompatActivity implements SensorEventListener
     {
         jsondata j=new jsondata();
 
-        JSONObject j1=j.makeJSONObject(s,Xaccel,Yaccel,Zaccel);
+        JSONObject j1=j.makeJSONObject(s,Xaccel,Yaccel,Zaccel,tmp);
         //SharedPreferences sharedPreferences=getSharedPreferences("records",Context.);
 
         try {
@@ -307,7 +316,7 @@ public class Sensorinfo extends AppCompatActivity implements SensorEventListener
             fbw.write(j1.toString());
             fbw.close();
             //outputStreamWriter.close();
-            Toast.makeText(this,"Saved data", Toast.LENGTH_LONG).show();
+            Toast.makeText(this,"Saved data", Toast.LENGTH_SHORT).show();
         }catch (Exception e) {
             Toast.makeText(getBaseContext(), e.getMessage(), Toast.LENGTH_LONG).show();
         }
@@ -363,6 +372,7 @@ public class Sensorinfo extends AppCompatActivity implements SensorEventListener
 
 
     }
+
 
 
 }
